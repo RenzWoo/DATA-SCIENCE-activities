@@ -1,0 +1,177 @@
+---
+title: |
+  | DS311
+  | Exploratory_Data_Analysis
+subtitle: |
+  | --------------------------------------------------
+  | Laboratory Activity 3-4
+  | --------------------------------------------------
+output: pdf_document
+# Author: Renzo Angelo A. Alasan
+mainfont: Times New Roman
+header-includes:
+  - "\\usepackage{graphicx}"
+  - "\\usepackage{titling}"
+  - "\\pretitle{\\begin{center}\\LARGE\\includegraphics[width=4cm]{logo.png}\\\\[\\bigskipamount]}"
+  - "\\posttitle{\\end{center}}"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, error=FALSE)
+```
+
+## Section 3: Lab Activity
+
+In this lab, you’ll apply what we’ve covered to the student performance data. The dataset we use is from
+a study of secondary school students from two Portuguese schools, with attributes on student background
+and grades. We will use the “Math” class subset (395 students) for these exercises.
+
+**1. Data Understanding:** Load the student performance dataset into R (you can use the code provided
+in the examples). Examine its structure using functions like `dim()`, `str()`, or `summary()`. How many
+observations and variables are there? Identify which variables are numerical and which are categorical.
+(Hint: Variables like `school`, `sex`, etc. are categorical; `age` is numeric; some, like `studytime`, are ordered factors coded as numeric.)
+
+**2. Exploring Relationships:** Pick at least five numeric variables and compute a correlation matrix for
+them (for example, you might include the three grade columns `G1`, `G2`, `G3` and a couple of others like
+`studytime`, `absences`, `failures`). Which pair of variables has the highest correlation? Which pair has
+a strong negative correlation (if any)? Describe what those correlations imply in the context of student
+performance.
+
+**3. Visualizing Multivariate Patterns:** Create a scatter plot to visualize the relationship between two
+interesting variables from the dataset. A good choice is **first period grade (`G1`) vs final grade (`G3`)** as we did above. Plot these using `ggplot2::geom_point()`. Do you notice any pattern or outliers? Now improve the plot by addressing overplotting: for example, use `geom_jitter()` or set `alpha` transparency as demonstrated. How does this help in seeing the data distribution? Briefly describe the trend you observe and any deviations.
+
+*(Optional extension: Color the points by a categorical variable such as sex (gender) or schoolsup (extra school support) to see if the relationship differs by subgroup.)*
+
+**4. Principal Component Analysis:** Perform PCA on a set of numerical variables related to student
+performance. A suggested set: c("`G1`","`G2`","`G3`","`failures`","`absences`","`Medu`","`Fedu`") (as we used in the example). Ensure you scale the variables (`prcomp(scale.=TRUE)`). How many principal components have eigenvalues greater than 1? Look at the proportion of variance explained by the first two PCs. Now inspect the PCA loadings (use `pca_result$rotation or print(pca_result)`). Based on the loadings, what does PC1 seem to represent? What about PC2? (In other words, which variables heavily influence PC1 vs
+PC2?)
+
+**5. Factor Analysis:** Using the same set of variables as in #4, conduct an exploratory factor analysis. Try
+extracting 2 factors with `factanal`(`..., factors=2, rotation="varimax"`). Examine the factor loadings.
+Which variables load strongly on Factor1, and which on Factor2? Name each factor in plain language (e.g.,
+“Factor1: ___ factor, Factor2: ___ factor”). How well does this factor solution make sense, and how does
+it compare to the PCA results from #4?
+
+Write down your findings and interpretations for each step.
+
+# Load dataset
+```{r}
+data <- read.csv("student-mat.csv", sep=";")
+head(data,3)
+```
+# 1. Data Understanding: 
+
+```{r}
+dim(data)
+```
+- **395 observations (rows)**
+- **33 variables(columns)**
+
+```{r}
+str(data)
+```
+**Categorical Variables:** `school, sex, address, famsize, Pstatus, Mjob, Fjob, reason, guardian, schoolsup, famsup, paid, activities, nursery, higher, internet, romantic`. There are total of **17 categorical variables**.
+  
+**Numeric variables:** `age, Medu, Fedu, traveltime, studytime, failures, famrel, freetime, goout, Dalc, Walc, health, absences, G1, G2, G3`. There are **16 numerical variables**.
+
+# 2. Exploring Relationships: 
+
+```{r}
+num_vars <- data[, c("G1", "G2", "G3", "studytime", "absences", "failures")]
+cor_matrix <- cor(num_vars, use="complete.obs")
+round(cor_matrix, 2)
+```
+**Highest positive correlation:** `G2` and `G3` which has a correlation of 0.90.
+
+- Interpretation: Students who perform well in the second period also tend to perform well in the final grade.
+
+**Strongest negative correlation:** `failures` and `G1` / `G2` / `G3` which has correlation in between -0.35 to -0.36.
+
+- Interpretation: Students with more previous class failures tend to score lower in all three grading periods.
+
+**Other observations:**
+
+- `studytime` has a weak positive relationship with grades.
+- `absences` shows very little or no relationship with grades in this dataset.
+  
+# 3. Visualizing Multivariate Patterns:
+  
+```{r, echo=FALSE}
+library(ggplot2)
+ggplot(data, aes(x = G1, y = G3)) +
+  geom_point() +
+  labs(
+    title = "First Period Grade (G1) vs Final Grade (G3)",
+    x = "G1 (First Period Grade)",
+    y = "G3 (Final Grade)"
+  ) +
+  theme_minimal()
+```
+- You'll see a strong positive trend: as `G1` increases, `G3` also tends to increase.
+
+```{r, echo=FALSE}
+ggplot(data, aes(x = G1, y = G3)) +
+  geom_jitter(width = 0.2, height = 0.2, alpha = 0.5) +
+  labs(
+    title = "G1 vs G3 with Jitter and Transparency",
+    x = "G1 (First Period Grade)",
+    y = "G3 (Final Grade)"
+  ) 
+```
+
+- `geom_jitter()` adds small random noise so overlapping points separate slightly.
+
+- This makes **dense clusters and outliers visible**.
+
+**Observations:**
+
+- **Clear positive relationship:** Higher G1 grades are associated with higher G3 grades.
+- **Some outliers:** A few students have low G3 despite high G1, suggesting they dropped performance over time.
+- Most points cluster along a diagonal line (roughly G1 to G3), showing consistency in student performance.
+
+
+# 4. Principal Component Analysis:
+
+```{r}
+vars <- c("G1","G2","G3","failures","absences","Medu","Fedu")
+pca_vars <- data[,vars]
+pca_result <- prcomp(pca_vars, scale. = TRUE)
+summary(pca_result)
+```
+- **3 principal components have eigenvalues > 1 (PC1, PC2, PC3).**
+
+## Inspect PCA loadings
+```{r}
+pca_result$rotation
+```
+- `PC1` represents **academic performance / achievement**
+  - High PC1 score = high grades, few failures
+
+- `PC2` represents **parental education / family background**
+  - High negative PC2 scores = highly educated parents
+  - High positive PC2 scores = lower parental education
+  
+There are **three** principal components with eigenvalues greater than 1. The first two components together explain about 65% of the total variance. `PC1` is mainly influenced by grades (`G1, G2, G3`) and negatively by `failures`, representing overall academic performance. `PC2` is mainly associated with `parental education` and `absences`, reflecting a family background and attendance pattern.
+
+
+## 5. Factor Analysis:
+```{r}
+fa_result <- factanal(data[, vars], factors = 2, rotation = "varimax")
+fa_result$loadings
+```
+### Factor 1:
+
+- **Academic performance** loads the strongest.
+- **Strong positive loadings:** `G1`, `G2`, `G3`
+
+### Factor 2:
+
+- **Parental Education** loads the strongest.
+- **Strong positive loadings:** `Medu`, `Fedu`
+
+The factor analysis result matches the **first two PCA components almost exactly**, except:
+
+- `absences` **did not load strongly** on either factor, so it is not represented in the 2-factor solution.
+
+- PCA showed absences as its own separate third component.
+
+**Factor 1** represents academic performance, with high loadings from `G1, G2, and G3` and a negative loading from `failures`. **Factor 2** represents parental education, with strong loadings from `Medu` and `Fedu.` This two-factor solution makes **clear conceptual sense** and aligns closely with the PCA structure, except that it does not include the absences dimension that PCA identified separately.

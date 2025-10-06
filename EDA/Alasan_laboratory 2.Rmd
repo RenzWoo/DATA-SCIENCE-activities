@@ -1,0 +1,94 @@
+---
+title: |
+  | DS311
+  | Exploratory_Data_Analysis
+subtitle: |
+  | --------------------------------------------------
+  | Introduction to EDA
+  | --------------------------------------------------
+output: pdf_document
+# Author: Renzo Angelo A. Alasan
+mainfont: Times New Roman
+header-includes:
+  - "\\usepackage{graphicx}"
+  - "\\usepackage{titling}"
+  - "\\pretitle{\\begin{center}\\LARGE\\includegraphics[width=4cm]{logo.png}\\\\[\\bigskipamount]}"
+  - "\\posttitle{\\end{center}}"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+## Section 3: Lab Activity
+Let’s put it all together with a hands-on **case study**. We’ll use the **Palmer Penguins** dataset (`penguins` data frame from the `palmerpenguins` package). This real dataset contains measurements of three penguin
+species (Adelie, Chinstrap, Gentoo) in Antarctica. The variables include species, island, sex, and numerical measurements like flipper length, bill dimensions, and body mass.
+
+**Scenario:** Imagine we are exploring this penguin data to understand their physical characteristics. We will focus on the **body_mass_g** (body mass in grams) of the penguins and how it varies by species and overall.
+
+**Tasks:**
+
+1. **Identify Variables:** We want to investigate if there are differences in penguin body mass between
+species. In this context, what would be the independent and dependent variables? (State which variable
+is independent and which is dependent for this question.)
+
+2. **Summary Statistics:** Calculate basic summary statistics for the penguins’ body mass (the
+body_mass_g variable). Specifically, find the **mean**, **median**, and **standard deviation** of body mass in the entire dataset. (Ignore any missing values in calculations.)
+
+3. **Category Counts:** How many penguins of each **species** are in the dataset? Provide the count for
+each species (Adelie, Chinstrap, Gentoo).
+
+4. **Histogram:** Plot a histogram of the penguins’ body mass. Describe the distribution shape you observe
+(for example, is it symmetric, skewed, bimodal, etc.?).
+
+5. **Hypothesis Test:** Perform a one-sample t-test on `body_mass_g`. Test whether the **average penguin body mass** is **4500 grams** (H0: mean = 4500) at the 5% significance level. State the null and
+alternative hypotheses in words, and conclude whether the data provide evidence that the true mean
+body mass is different from 4500 g.
+
+*Note:* For any computations, you may use either base R or tidyverse approaches. When plotting, feel free
+to use base `hist()` or `ggplot2::geom_histogram()`. Make sure to handle missing data where appropriate
+(e.g., `na.rm=TRUE` in calculations or using `na.omit()`).
+
+# 1. Identify Variables
+
+```{r}
+library(palmerpenguins)
+```
+**Independent variable:** 
+
+`species` → because we are comparing different groups of penguins (Adelie, Chinstrap, Gentoo).
+
+**Dependent variable:** 
+
+`body_mass_g` → because this is the measurement to analyze to see if it changes depending on species.
+
+# 2. Summary Statistics:
+`body_mass_g` summary statistics:
+```{r}
+summary(penguins$body_mass_g)
+```
+Standard deviation:
+```{r, echo=FALSE}
+sd(penguins$body_mass_g, na.rm=TRUE)
+```
+# 3. Category Counts:
+```{r, echo=FALSE}
+table(penguins$species)
+```
+# 4. Histogram:
+```{r, echo=FALSE}
+hist(penguins$body_mass_g,
+     main="Histogram of penguin body mass (g)",
+     xlab="Body mass (g)",
+     col="lightblue")
+```
+The distribution of penguin body mass is roughly **symmetric**, with a slight **right skew**, since there are few penguins with much higher body masses.
+
+# 5. Hypothesis Test: 
+Test whether the **average penguin body mass** is **4500 grams** (H0: mean = 4500) at the 5% significance level.
+```{r, echo=FALSE}
+penguin_body_mass <- na.omit(penguins$body_mass_g)
+t.test(penguin_body_mass, mu = 4500)
+```
+### Conclusion
+- The p-value is extremely small (< 0.50), so we fail to accept the null hypothes *Ho*.
+- There is strong statistical evidence that the true mean body mass of penguins is different from 4500 grams.

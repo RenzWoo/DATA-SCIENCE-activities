@@ -1,0 +1,34 @@
+---
+title: |
+  | DS311
+  | Exploratory_Data_Analysis
+subtitle: |
+  | --------------------------------------------------
+  | Introduction to EDA
+  | --------------------------------------------------
+output: pdf_document
+# Author: Renzo Angelo A. Alasan
+mainfont: Times New Roman
+header-includes:
+  - "\\usepackage{graphicx}"
+  - "\\usepackage{titling}"
+  - "\\pretitle{\\begin{center}\\LARGE\\includegraphics[width=4cm]{logo.png}\\\\[\\bigskipamount]}"
+  - "\\posttitle{\\end{center}}"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Section 3: Lab Activity
+Let’s put it all together with a hands-on **case study**. We’ll use the **Palmer Penguins** dataset (`penguins`
+data frame from the `palmerpenguins` package). This real dataset contains measurements of three penguin
+species (Adelie, Chinstrap, Gentoo) in Antarctica. The variables include species, island, sex, and numerical
+measurements like flipper length, bill dimensions, and body mass.
+**Scenario:** Imagine we are exploring this penguin data to understand their physical characteristics. We will
+focus on the **body_mass_g** (body mass in grams) of the penguins and how it varies by species and overall.
+
+```{r}
+tinytex::install_tinytex()
+```
+
